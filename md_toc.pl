@@ -15,6 +15,7 @@ use Pod::Usage;
 use Const::Fast;
 use English qw(-no_match_vars);
 use Data::Dumper;
+use File::Copy;
 
 use Digest::CRC qw(crc64);
 
@@ -28,6 +29,7 @@ const my @_OPTIONS => (
     'verbose|v',
     'input_file|if=s',
     'output_file|of=s',
+    'backup|b',
 );
 
 #*******************************************************************************************************************************
@@ -205,6 +207,15 @@ sub run {
         print @lines;
     }
     else {
+        # Create backup if input and output are the same and backup flag is set
+        if ($input_file && $output_file eq $input_file && $params->{backup}) {
+            my $backup_file = "$input_file.bak";
+            copy($input_file, $backup_file) or die("Cannot create backup $backup_file: $OS_ERROR\n");
+            if ($params->{verbose}) {
+                warn("Created backup: $backup_file\n");
+            }
+        }
+
         open my $out_fh, '>', $output_file or die("Cannot write to $output_file: $OS_ERROR\n");
         print {$out_fh} @lines;
         close $out_fh;
@@ -230,6 +241,7 @@ Options:
     --input_file, -if   Input markdown file (default: STDIN)
     --output_file, -of  Output markdown file (default: STDOUT)
     --depth, -d         Maximum header depth to include (default: 3)
+    --backup, -b        Create backup when doing in-place editing
     --verbose, -v       Verbose output
     --help, -h, -?      Show help message
     --man               Show full manual
@@ -257,6 +269,8 @@ Key features:
 
 =item * Supports STDIN/STDOUT for pipe operations
 
+=item * Optional backup creation for in-place editing
+
 =back
 
 If a TOC already exists (marked with <!-- begin TOC --> and <!-- end TOC --> comments),
@@ -283,9 +297,15 @@ If not specified, writes to STDOUT.
 Specify the maximum header depth to include in the TOC. Default is 3.
 For example, --depth=2 will include only H1 and H2 headers.
 
+=item B<--backup>, B<-b>
+
+Create a backup file (.bak extension) when doing in-place editing (when input and
+output files are the same). The backup is created before writing changes. This option
+is ignored when input and output files are different or when using STDIN/STDOUT.
+
 =item B<--verbose>, B<-v>
 
-Enable verbose output for debugging.
+Enable verbose output for debugging. When combined with --backup, shows backup file creation.
 
 =item B<--help>, B<-h>, B<-?>
 
@@ -303,15 +323,19 @@ Process a markdown file in-place:
 
     md_toc.pl --input_file document.md --output_file document.md
 
-Using short options:
+In-place editing with backup:
 
-    md_toc.pl -if README.md -of README.md
+    md_toc.pl -if README.md -of README.md --backup
+
+Using short options with backup and verbose:
+
+    md_toc.pl -if README.md -of README.md -b -v
 
 Limit TOC to only H1 and H2 headers:
 
     md_toc.pl -if doc.md -of doc.md --depth 2
 
-Process with verbose output:
+Process with verbose output (different files, no backup):
 
     md_toc.pl -if input.md -of output.md -v
 

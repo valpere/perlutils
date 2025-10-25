@@ -32,6 +32,10 @@ A utility that generates or updates a Table of Contents in Markdown files.
 ./md_toc.pl --input_file document.md --output_file document.md
 ./md_toc.pl -if input.md -of output.md --depth=3
 
+# In-place editing with backup
+./md_toc.pl -if README.md -of README.md --backup
+./md_toc.pl -if README.md -of README.md -b -v
+
 # Using pipes (STDIN/STDOUT)
 cat document.md | ./md_toc.pl > output.md
 ./md_toc.pl -if document.md > output.md
@@ -46,6 +50,7 @@ cat document.md | ./md_toc.pl -of output.md
 - `--input_file, -if` - Input markdown file (default: STDIN)
 - `--output_file, -of` - Output markdown file (default: STDOUT, can be same as input for in-place)
 - `--depth, -d` - Maximum header depth to include (default: 3)
+- `--backup, -b` - Create backup (.bak) when doing in-place editing
 - `--verbose, -v` - Verbose output
 - `--help, -h, -?` - Show help message
 - `--man` - Show full manual
@@ -64,6 +69,7 @@ cat document.md | ./md_toc.pl -of output.md
   - Adds double newline only when needed for proper HTML rendering
 - Idempotent: replaces existing anchors instead of duplicating them
 - Supports STDIN/STDOUT for pipe operations and text processing workflows
+- Optional backup creation (.bak extension) for in-place editing using `File::Copy`
 - Uses `Const::Fast` for constant definitions
 - Uses `English` module for readable special variables
 - POD documentation embedded in the script (accessible via `--man`)
@@ -82,6 +88,7 @@ cat document.md | ./md_toc.pl -of output.md
      - Preserve spacing if blank lines already exist
      - Add double newline only when needed
    - Find or create TOC section after first H1
+   - Create backup file if doing in-place editing with --backup flag
    - Write modified content to file or STDOUT
 
 ## Development Guidelines
@@ -96,8 +103,9 @@ Use all the stable features of the version.
 - `Getopt::Long` - Command-line option parsing
 - `Pod::Usage` - POD-based help/manual generation
 - `Const::Fast` - Compile-time constant definitions
-- `English` - Readable names for special variables (e.g., `$INPUT_RECORD_SEPARATOR`)
+- `English` - Readable names for special variables (e.g., `$OS_ERROR`)
 - `Data::Dumper` - Data structure debugging
+- `File::Copy` - File copying for backup creation
 - `Digest::CRC` - CRC64 hashing for stable anchor generation
 
 ### Script Structure
