@@ -205,9 +205,9 @@ sub run {
         print @lines;
     }
     else {
-        open my $fh, '>', $output_file or die("Cannot write to $output_file: $OS_ERROR\n");
-        print {$fh} @lines;
-        close $fh;
+        open my $out_fh, '>', $output_file or die("Cannot write to $output_file: $OS_ERROR\n");
+        print {$out_fh} @lines;
+        close $out_fh;
     }
 
     return 1;

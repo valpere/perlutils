@@ -148,11 +148,11 @@ For functional testing, create a test markdown file and verify the output.
 ### Formatting Code
 
 ```bash
-perltidy --profile=/home/val/perltidy-a.conf "$@"
+perltidy --profile=/home/val/.perltidyrc "$@"
 ```
 
 ### Analyze Code
 
 ```bash
-perlcritic --profile=/home/val/perlcritic-a.conf "$@"
+perlcritic --profile=/home/val/.perlcriticrc "$@"
 ```
