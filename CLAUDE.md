@@ -28,15 +28,23 @@ A utility that generates or updates a Table of Contents in Markdown files.
 
 **Usage:**
 ```bash
+# File to file
 ./md_toc.pl --input_file document.md --output_file document.md
 ./md_toc.pl -if input.md -of output.md --depth=3
+
+# Using pipes (STDIN/STDOUT)
+cat document.md | ./md_toc.pl > output.md
+./md_toc.pl -if document.md > output.md
+cat document.md | ./md_toc.pl -of output.md
+
+# Help
 ./md_toc.pl --help          # Show help
 ./md_toc.pl --man           # Show full manual
 ```
 
 **Options:**
-- `--input_file, -if` - Input markdown file
-- `--output_file, -of` - Output markdown file (can be the same as input for in-place modification)
+- `--input_file, -if` - Input markdown file (default: STDIN)
+- `--output_file, -of` - Output markdown file (default: STDOUT, can be same as input for in-place)
 - `--depth, -d` - Maximum header depth to include (default: 3)
 - `--verbose, -v` - Verbose output
 - `--help, -h, -?` - Show help message
@@ -55,6 +63,7 @@ A utility that generates or updates a Table of Contents in Markdown files.
   - Preserves existing blank lines between anchor and header
   - Adds double newline only when needed for proper HTML rendering
 - Idempotent: replaces existing anchors instead of duplicating them
+- Supports STDIN/STDOUT for pipe operations and text processing workflows
 - Uses `Const::Fast` for constant definitions
 - Uses `English` module for readable special variables
 - POD documentation embedded in the script (accessible via `--man`)
@@ -62,7 +71,7 @@ A utility that generates or updates a Table of Contents in Markdown files.
 **Architecture:**
 1. `get_options()` - Parse command-line options using GetOptions
 2. `run()` - Main execution method:
-   - Read input file into memory
+   - Read input from file or STDIN into memory
    - Find the first H1 header to determine TOC insertion point
    - Parse all headers while tracking code block state to avoid false matches
    - Generate TOC entries with CRC64-based anchors (skipping the first H1)
@@ -73,7 +82,7 @@ A utility that generates or updates a Table of Contents in Markdown files.
      - Preserve spacing if blank lines already exist
      - Add double newline only when needed
    - Find or create TOC section after first H1
-   - Write modified content to output file
+   - Write modified content to file or STDOUT
 
 ## Development Guidelines
 
@@ -139,11 +148,11 @@ For functional testing, create a test markdown file and verify the output.
 ### Formatting Code
 
 ```bash
-perltidy --profile=/home/val/perltidy-a.conf "$@"
+perltidy --profile=/home/val/.perltidyrc "$@"
 ```
 
 ### Analyze Code
 
 ```bash
-perlcritic --profile=/home/val/perlcritic-a.conf "$@"
+perlcritic --profile=/home/val/.perlcriticrc "$@"
 ```
