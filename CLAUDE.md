@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a collection of Perl utilities for various text processing tasks. The codebase uses modern Perl (v5.38.2+) with strict/warnings enabled.
+This is a collection of Perl utilities for various text processing tasks. The codebase uses modern Perl (v5.38+) with strict/warnings enabled.
 
 ## Running Utilities
 

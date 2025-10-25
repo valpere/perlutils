@@ -4,7 +4,7 @@ package md_toc;
 use strict;
 use warnings;
 
-use v5.38.2;
+use v5.38;
 
 our $VERSION = "0.1.0";
 
@@ -115,14 +115,21 @@ sub run {
 
     # Build TOC - adjust indentation relative to minimum level
     my $toc = "\n";
-    # Find minimum level to normalize indentation
-    my $min_level = $toc_entries[0]{level} if @toc_entries;
-    for my $entry (@toc_entries) {
-        $min_level = $entry->{level} if $entry->{level} < $min_level;
+
+    # Early return if no TOC entries found
+    if (!@toc_entries) {
+        warn("Warning: No headers found to build TOC (excluding first H1)\n");
     }
-    for my $entry (@toc_entries) {
-        my $indent = '  ' x ($entry->{level} - $min_level);
-        $toc .= "$indent- [$entry->{text}](#$entry->{anchor})\n";
+    else {
+        # Find minimum level to normalize indentation
+        my $min_level = $toc_entries[0]{level};
+        for my $entry (@toc_entries) {
+            $min_level = $entry->{level} if $entry->{level} < $min_level;
+        }
+        for my $entry (@toc_entries) {
+            my $indent = '  ' x ($entry->{level} - $min_level);
+            $toc .= "$indent- [$entry->{text}](#$entry->{anchor})\n";
+        }
     }
 
     # Place anchors above headers
