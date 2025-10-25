@@ -31,7 +31,8 @@ const my @_OPTIONS => (
 );
 
 #*******************************************************************************************************************************
-sub get_options ($self) {
+sub get_options {
+    my ($self) = @_;
 
     my $params = {};
     if (!GetOptions($params, @_OPTIONS)) {
@@ -72,10 +73,17 @@ sub run {
     my $params = $self->get_options();
 
     my $input_file = $params->{input_file};
+    my @lines;
 
-    open my $fh, '<', $input_file or die("Cannot open $input_file: $OS_ERROR\n");
-    my @lines = <$fh>;
-    close $fh;
+    # Read from STDIN if input_file is empty, otherwise read from file
+    if (!$input_file) {
+        @lines = <STDIN>;
+    }
+    else {
+        open my $fh, '<', $input_file or die("Cannot open $input_file: $OS_ERROR\n");
+        @lines = <$fh>;
+        close $fh;
+    }
 
     # Find the first level 1 header
     my $first_h1_index = -1;
@@ -92,7 +100,8 @@ sub run {
     }
 
     if ($first_h1_index == -1) {
-        die("No level 1 header found in $input_file\n");
+        my $source = $input_file ? $input_file : "STDIN";
+        die("No level 1 header found in $source\n");
     }
 
     # Parse headers for TOC (skip the first H1)
@@ -189,12 +198,17 @@ sub run {
         splice(@lines, $first_h1_index + 1, 0, "<!-- begin TOC -->$toc<!-- end TOC -->\n");
     }
 
-    # Write back to file
-
+    # Write to STDOUT if output_file is empty, otherwise write to file
     my $output_file = $params->{output_file};
-    open $fh, '>', $output_file or die("Cannot write to $output_file: $OS_ERROR\n");
-    print {$fh} @lines;
-    close $fh;
+
+    if (!$output_file) {
+        print @lines;
+    }
+    else {
+        open my $fh, '>', $output_file or die("Cannot write to $output_file: $OS_ERROR\n");
+        print {$fh} @lines;
+        close $fh;
+    }
 
     return 1;
 } ## end sub run
@@ -210,11 +224,11 @@ md_toc.pl - Generate or update Table of Contents in Markdown files
 
 =head1 SYNOPSIS
 
-md_toc.pl --input_file <input_file> --output_file <output_file> [options]
+md_toc.pl [--input_file <input_file>] [--output_file <output_file>] [options]
 
 Options:
-    --input_file, -if   Input markdown file (required)
-    --output_file, -of  Output markdown file (required, can be same as input)
+    --input_file, -if   Input markdown file (default: STDIN)
+    --output_file, -of  Output markdown file (default: STDOUT)
     --depth, -d         Maximum header depth to include (default: 3)
     --verbose, -v       Verbose output
     --help, -h, -?      Show help message
@@ -241,10 +255,15 @@ Key features:
 
 =item * Smart whitespace handling: preserves existing spacing between anchors and headers
 
+=item * Supports STDIN/STDOUT for pipe operations
+
 =back
 
 If a TOC already exists (marked with <!-- begin TOC --> and <!-- end TOC --> comments),
 it will be replaced. The TOC includes headers up to the specified depth (default: 3).
+
+The script can read from STDIN and write to STDOUT, making it suitable for use in pipes
+and text processing workflows.
 
 =head1 OPTIONS
 
@@ -252,11 +271,12 @@ it will be replaced. The TOC includes headers up to the specified depth (default
 
 =item B<--input_file>, B<-if>
 
-Input markdown file to process. Required.
+Input markdown file to process. If not specified, reads from STDIN.
 
 =item B<--output_file>, B<-of>
 
-Output markdown file. Can be the same as input file for in-place modification. Required.
+Output markdown file. Can be the same as input file for in-place modification.
+If not specified, writes to STDOUT.
 
 =item B<--depth>, B<-d>
 
@@ -294,6 +314,22 @@ Limit TOC to only H1 and H2 headers:
 Process with verbose output:
 
     md_toc.pl -if input.md -of output.md -v
+
+Read from STDIN and write to STDOUT:
+
+    cat document.md | md_toc.pl > output.md
+
+Read from file, write to STDOUT:
+
+    md_toc.pl -if document.md > output.md
+
+Read from STDIN, write to file:
+
+    cat document.md | md_toc.pl -of output.md
+
+Use in a pipeline:
+
+    cat README.md | md_toc.pl | grep "^#" | wc -l
 
 =head1 AUTHOR
 
